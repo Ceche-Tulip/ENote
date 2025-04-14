@@ -6,6 +6,7 @@ import com.enote.dto.RegisterRequest;
 import com.enote.entity.User;
 import com.enote.repository.UserRepository;
 import com.enote.security.JwtTokenUtil;
+import com.enote.security.TokenBlacklistService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,6 +32,9 @@ public class AuthService {
 
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
+
+    @Autowired
+    private TokenBlacklistService tokenBlacklistService;
 
     public AuthResponse register(RegisterRequest registerRequest) {
         // 检查用户名和邮箱是否已存在
@@ -90,5 +94,28 @@ public class AuthService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .build();
+    }
+
+    public void logout(String username, String token) {
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user != null) {
+            // 更新最后登出时间
+            user.setLastLogin(LocalDateTime.now());
+            userRepository.save(user);
+        }
+        
+        // 将token加入黑名单
+        if (token != null) {
+            try {
+                Long expirationTime = jwtTokenUtil.extractExpiration(token).getTime();
+                tokenBlacklistService.blacklistToken(token, expirationTime);
+            } catch (Exception e) {
+                // 如果token解析失败，使用24小时后的时间
+                tokenBlacklistService.blacklistToken(token, System.currentTimeMillis() + 86400000);
+            }
+        }
+        
+        // 清除安全上下文
+        SecurityContextHolder.clearContext();
     }
 }

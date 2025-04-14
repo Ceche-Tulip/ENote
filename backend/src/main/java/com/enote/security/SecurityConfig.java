@@ -26,9 +26,8 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll() // 添加API前缀的认证端点
-                        .requestMatchers("/api/test/public").permitAll() // 允许访问公共测试端点
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/test/public").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

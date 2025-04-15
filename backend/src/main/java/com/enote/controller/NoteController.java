@@ -10,8 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/notes")
+@RequestMapping("/notes")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")  // 允许跨域访问
 public class NoteController {
 
     private final NoteService noteService;
